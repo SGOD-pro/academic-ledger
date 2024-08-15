@@ -1,113 +1,244 @@
-import Image from "next/image";
-
+"use client";
+import Link from "next/link";
+import {
+	lazy,
+	Suspense,
+	useState,
+	useMemo,
+	useRef,
+	useCallback,
+	useEffect,
+	memo,
+} from "react";
+const AddStudent = lazy(() => import("@/components/AddStudent"));
+const AddSubject = lazy(() => import("@/components/AddSubject"));
+const ExamForm = lazy(() => import("@/components/ExamForm"));
+const SimpleCard = lazy(() => import("@/components/SimpleCard"));
+const Table = lazy(() => import("@/components/ui/Table"));
+import { popHomeStudents } from "@/toolkit/slices";
+import { StudentDetailsInterface, SelectInterface } from "@/interfaces";
+import axios from "axios";
+import { useDispatch, useSelector } from "react-redux";
+import useToast from "@/hooks/ToastHook";
+import { RootState } from "@/toolkit";
+import { toArray } from "@/helper/Array";
+import { setHomeStudents,setAdmissionNo,updateAdmissionNo } from "@/toolkit/slices";
+import Loading from "@/components/ui/Loading";
+import { latestAdmissionNo, formatData } from "@/helper/FormatStdDetails";
+import LazyLoading from "@/components/ui/LazyLoading";
+interface ActionComponentProps {
+	rowData: StudentDetailsInterface;
+}
+const columns = [
+	{ field: "admissionNo", header: "Admission No" },
+	{ field: "name", header: "Full name" },
+	{ field: "subjects", header: "Subjects" },
+];
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
-        </div>
-      </div>
+	const [update, setUpdate] = useState(false);
+	const subject = useRef<SelectInterface[] | null>(null);
+	const dispatch = useDispatch();
+	const { show } = useToast();
+	const [values, setValues] = useState<StudentDetailsInterface>({
+		admissionNo: "",
+		institutionName: "",
+		picture: null,
+		subjects: [],
+		name: "",
+		clg: false,
+		stream: "",
+		fees: 0,
+		phoneNo: [],
+		admissionDate: new Date(),
+	});
+	const students = useSelector(
+		(state: RootState) => state.Students.homeStudents
+	);
+	const data = useMemo(() => toArray(students), [students]);
+	const [loading, setLoading] = useState(false);
 
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
+	useEffect(() => {
+		if (data && data.length === 0) {
+			setLoading(true);
+			axios
+				.get("/api/students/curd")
+				.then((response) => {
+					dispatch(setHomeStudents(response.data.data));
+					if (response.data.data[0]?.admissionNo) {
+						dispatch(updateAdmissionNo(response.data.data[0].admissionNo))
+						const adno = latestAdmissionNo(response.data.data[0].admissionNo);
+						localStorage.setItem("adno", adno);
+						setValues((prev) => ({
+							...prev,
+							admissionNo: adno,
+						}));
+					}
+					show({
+						type: "success",
+						summary: "Fetched",
+						detail: "Successfully fetched students",
+					});
+				})
+				.catch((error) => {
+					console.log(error);
+					show({
+						type: "error",
+						summary: "Error",
+						detail: error.response?.data?.message || "Server error",
+					});
+				})
+				.finally(() => {
+					setLoading(false);
+				});
+		} else {
+			setLoading(false);
+			const adno = latestAdmissionNo(data[0].admissionNo);
+			setValues((prev) => ({
+				...prev,
+				admissionNo: adno,
+			}));
+			localStorage.setItem("adno", adno);
+		}
+	}, [data, dispatch, show]);
 
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
+	const editFunction = useCallback((rowData: StudentDetailsInterface) => {
+		const formated = formatData(rowData);
+		setValues(formated.formatedData);
+		subject.current = formated.subjectList;
+		if (rowData._id) localStorage.setItem("_id", rowData._id);
+		setUpdate(true);
+	}, []);
 
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
+	const ActionComponent: React.FC<ActionComponentProps> = memo(
+		({ rowData }) => {
+			const id = rowData._id;
+			const [disabled, setDisabled] = useState(false);
+	
+			const deleteFunction = useCallback(
+				async (id: string) => {
+					try {
+						setDisabled(true);
+						const response = await axios.delete(`/api/students/curd?id=${id}`);
+						// Handle success
+						show({
+							summary: "DELETED",
+							type: "info",
+							detail: response.data.message || "Deleted successfully.",
+						});
+						dispatch(popHomeStudents(id));
+					} catch (error: any) {
+						// Handle error
+						show({
+							summary: "Not Deleted",
+							type: "error",
+							detail:
+								error.response?.data?.message ||
+								error.message ||
+								"Server error while deleting",
+						});
+					} finally {
+						setDisabled(false);
+					}
+				},
+				[dispatch, show] // Ensure dependencies are correct
+			);
+	
+			if (!id) {
+				return null;
+			}
+	
+			return (
+				<div className="flex gap-1">
+					<button
+						className="bg-gradient-to-tl to-red-400 from-red-600 shadow-rose-800/90 shadow-lg hover:shadow-none hover:scale-95 transition-all rounded-r-sm rounded-l-xl p-3 grid place-items-center"
+						onClick={() => deleteFunction(id)}
+						disabled={disabled}
+					>
+						{disabled ? (
+							<i className="pi pi-spin pi-spinner"></i>
+						) : (
+							<i className="pi pi-trash"></i>
+						)}
+					</button>
+					<button
+						className="bg-gradient-to-tl to-emerald-400 from-emerald-800 shadow-emerald-800/90 shadow-lg hover:shadow-none hover:scale-95 transition-all rounded-l-sm rounded-r-xl p-3 grid place-items-center"
+						onClick={() => editFunction(rowData)}
+					>
+						<i className="pi pi-pen-to-square"></i>
+					</button>
+				</div>
+			);
+		}
+	);
+	
+	ActionComponent.displayName = 'ActionComponent';
+	
+	return (
+		<div className="grid grid-cols-1 lg:grid-cols-[2.5fr,1fr] h-full md:overflow-hidden overflow-auto custom-scrollbar gap-3">
+			<div className="fixed right-4 top-3 z-40 grid cursor-pointer place-items-center w-10 h-10 bg-cyan-400 rounded-full">
+				<i className="pi pi-bell relative text-xl "></i>
+				<span className="animate-ping absolute h-full w-full rounded-full bg-sky-400 opacity-75"></span>
+			</div>
 
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
+			<section className="grid grid-rows-2 gap-3 overflow-y-auto overflow-x-hidden">
+				<section className="rounded-lg sm:rounded-tl-[20px] md:rounded-tl-[44px] border border-slate-400/70 p-3 md:p-3 md:pl-8 relative overflow-y-auto overflow-x-hidden custom-scrollbar">
+					<Suspense fallback={<LazyLoading />}>
+						<div className="">
+							<AddStudent
+								studentData={values}
+								update={update}
+								setUpdate={setUpdate}
+								subject={subject.current}
+							/>
+						</div>
+					</Suspense>
+				</section>
 
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
-  );
+				<div className=" overflow-auto sm:rounded-bl-[20px] rounded-lg md:rounded-bl-[44px] border border-slate-400/70 relative custom-scrollbar bg-[#1F2937]">
+					<section className=" ">
+						<header className="flex items-center justify-between px-3 h-10 border-b sticky top-0 z-10 bg-[#1F2937]">
+							<h2 className="text-xl capitalize font-semibold ">
+								recent students
+							</h2>
+							<Link
+								href="/all/all-students"
+								className="text-emerald-500 text-sm underline"
+							>
+								All student
+							</Link>
+						</header>
+
+						<Suspense fallback={<LazyLoading />}>
+							<Loading loading={loading}>
+								<Table
+									columns={columns}
+									values={data}
+									Components={ActionComponent}
+								/>
+							</Loading>
+						</Suspense>
+					</section>
+				</div>
+			</section>
+			<section className="hidden lg:grid lg:grid-rows-[.5fr,1fr,3.5fr] gap-2 relative rounded-lg overflow-auto custom-scrollbar">
+				<div className="w-full relative border border-slate-400/60 rounded-lg">
+					<Suspense fallback={<LazyLoading />}>
+						<SimpleCard />
+					</Suspense>
+				</div>
+				<div className="w-full relative border border-slate-400/60 rounded-lg p-2">
+					<h2 className="text-lg font-semibold">Add Subject</h2>
+					<Suspense fallback={<LazyLoading />}>
+						<AddSubject />
+					</Suspense>
+				</div>
+				<div className="w-full relative border border-slate-400/60 rounded-lg p-2">
+					<h2 className="text-lg font-semibold">Add Exam</h2>
+					<Suspense fallback={<LazyLoading />}>
+						<ExamForm />
+					</Suspense>
+				</div>
+			</section>
+		</div>
+	);
 }

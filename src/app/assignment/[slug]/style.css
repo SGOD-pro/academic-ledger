@@ -1,0 +1,30 @@
+/* General styles for the entire document */
+main.assignment {
+	font-family: Arial, sans-serif;
+	line-height: 1.6;
+
+	/* Style for all h2 headings */
+	h2 {
+		font-size: 2em;
+		font-weight: bold;
+		margin-bottom: 20px;
+	}
+
+	/* Style for ordered lists */
+	ol {
+		list-style-type: decimal;
+		padding-left: 20px;
+		margin-bottom: 20px;
+	}
+
+	/* Style for list items */
+
+	/* Add spacing between sections */
+	h2 + ol {
+		margin-top: 20px;
+	}
+
+	ol + h2 {
+		margin-top: 40px;
+	}
+}

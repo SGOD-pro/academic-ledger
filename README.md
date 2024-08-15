@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Academic Ledger
 
-## Getting Started
+Academic Ledger is a web application designed for private tutors to efficiently manage their batches and students. Built with Next.js, this platform offers an intuitive interface and robust features to streamline academic management.
 
-First, run the development server:
+## Table of Contents
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- [Features](#features)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Project Structure](#project-structure)
+- [Contributing](#contributing)
+- [License](#license)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Features
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Batch Management:** Create and manage different batches of students.
+- **Strudent Profiles:** Maintain detailed profiles for each student.
+- **Attendance Tacking:** Easily track and manage student attendance.
+- **Assignments:** Assign homework and track submissions.
+- **Performance Reports:** Generate performance reports for students.
+- **Responsive Design:** Access the platform on any device with a seamless experience.
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+## Installation
 
-## Learn More
+To get started with Academic Ledger, follow these steps:
 
-To learn more about Next.js, take a look at the following resources:
+1. **Clone the repository:**
+    ```bash
+    git clone https://github.com/your-username/academic-ledger.git
+    cd academic-ledger
+    ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. **Install dependencies:**
+    ```bash
+    npm install
+    ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+3. **Set up environment variables:**
+   Create a `.env` file in the root directory and add the necessary environment variables. For example:
+    ```bash
+    DATABASE_URL=your_database_url
+    NEXT_PUBLIC_API_KEY=your_api_key
+    ```
 
-## Deploy on Vercel
+4. **Run the development server:**
+    ```bash
+    npm run dev
+    ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## Usage
+
+### Batch Management
+- Navigate to the "Batches" section to create and manage batches.
+- Add new batches by providing details such as batch name, timing, and associated tutor.
+
+### Student Profiles
+- In the "Students" section, add new students to the system.
+- Maintain and update student profiles with personal information and academic records.
+
+### Attendance Tracking
+- Mark attendance for each batch by navigating to the "Attendance" section.
+- View attendance history and generate attendance reports.
+
+### Assignments
+- Assign homework to students in the "Assignments" section.
+- Track submissions and provide feedback.
+
+### Performance Reports
+- Generate and view performance reports for individual students or batches.
+
+## Project Structure
+
+The project structure is as follows:
+
